@@ -20,11 +20,14 @@ const taskSchema = Schema(
 	{ _id: false }
 );
 
-const columnSchema = Schema({
-	name: { type: String, required: false },
-	columnId: { type: String, required: false },
-	tasks: [taskSchema],
-});
+const columnSchema = Schema(
+	{
+		name: { type: String, required: false },
+		columnId: { type: String, required: false },
+		tasks: [taskSchema],
+	},
+	{ _id: false }
+);
 
 const boardSchema = Schema(
 	{
@@ -40,7 +43,15 @@ const BoardsSchema = Schema({
 	boards: [boardSchema],
 });
 
-module.exports = model('Boards', BoardsSchema);
+module.exports = model(
+	'Boards',
+	BoardsSchema.method('toJSON', function toJSON() {
+		const { __v, _id, userId, ...object } = this.toObject();
+		return {
+			...object,
+		};
+	})
+);
 // module.exports = model(
 // 	'Boards',
 // 	BoardsSchema.method('toJSON', function toJSON() {
