@@ -1,19 +1,30 @@
 const { response, request } = require('express');
-const Board = require('../models/Board');
+const Boards = require('../models/Boards');
+const User = require('../models/User');
 
 const createBoard = async (req, res) => {
 	const { userId, name, columns, boardId } = req.body;
+	const boardData = {
+		name,
+		boardId,
+		columns,
+	};
 	try {
-		const boardData = {
-			userId,
-			name,
-			boardId,
-			columns,
-		};
-		const newBoard = await Board.create(boardData);
+		const user = await User.findById(userId);
+		if (!user) {
+			return res.status(404).json({
+				ok: false,
+				msg: `No user with ${userId}`,
+			});
+		}
+		const result = await Boards.findOneAndUpdate(
+			{ userId },
+			{ $push: { boards: boardData } },
+			{ upsert: true, new: true }
+		);
 		res.status(201).json({
 			ok: true,
-			newBoard,
+			boardData: result.boards[result.boards.length - 1],
 		});
 	} catch (error) {
 		console.error(error);
@@ -23,16 +34,16 @@ const createBoard = async (req, res) => {
 		});
 	}
 };
+
 const fetchBoards = async (req = request, res = response) => {
-  const { userid: userId } = req.headers;
-  try {
-    const boards = await Board.find({ userId });
-		console.log(boards);
-    res.json(boards);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error fetching boards');
-  }
+	const { userid: userId } = req.headers;
+	try {
+		const boards = await Boards.find({ userId });
+		res.json(boards);
+	} catch (error) {
+		console.error(error);
+		res.status(500).send('Error fetching boards');
+	}
 };
 
 module.exports = {
