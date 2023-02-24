@@ -47,14 +47,16 @@ const createBoard = async (req, res) => {
 };
 const createNewTask = async (req, res) => {
 	const { title, description, status, taskId, statusId, subtasks, userId, columnId, boardId } = req.body;
+
 	try {
 		const newTask = { title, description, status, taskId, statusId, subtasks, userId };
-		const board = await Boards.findOne({ userId });
-		const columnToAddTask = board.boards
-			.find(b => b.boardId === boardId)
-			.columns.find(col => col.columnId === columnId);
-		columnToAddTask.tasks.push(newTask);
-		await board.save();
+
+		await Boards.findOneAndUpdate(
+			{ userId, 'boards.boardId': boardId, 'boards.columns.columnId': columnId },
+			{ $push: { 'boards.$[board].columns.$[column].tasks': newTask } },
+			{ arrayFilters: [{ 'board.boardId': boardId }, { 'column.columnId': columnId }], new: true }
+		);
+
 		res.status(201).json({
 			ok: true,
 			task: newTask,
