@@ -52,12 +52,3 @@ module.exports = model(
 		};
 	})
 );
-// module.exports = model(
-// 	'Boards',
-// 	BoardsSchema.method('toJSON', function toJSON() {
-// 		const { __v, _id, userId, ...object } = this.toObject();
-// 		return {
-// 			...object,
-// 		};
-// 	})
-// );
