@@ -70,8 +70,35 @@ const createNewTask = async (req, res) => {
 	}
 };
 
+const deleteBoard = async (req = request, res = response) => {
+	const { userId, boardId } = req.body;
+	try {
+		const board = await Boards.findOne({ userId });
+		if (!board) {
+			return res.status(404).json({
+				ok: false,
+				msg: 'Board not found',
+			});
+		}
+		const updatedBoards = board.boards.filter(board => board.boardId !== boardId);
+		board.boards = updatedBoards;
+		await board.save();
+		res.json({
+			ok: true,
+			msg: 'Board deleted successfully',
+		});
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({
+			ok: false,
+			msg: 'Error deleting board',
+		});
+	}
+};
+
 module.exports = {
 	createBoard,
 	createNewTask,
+	deleteBoard,
 	fetchBoards,
 };
