@@ -4,17 +4,9 @@ const User = require('../models/User');
 const { generateJWT } = require('../helpers/jwt');
 
 const registerUser = async (req, res = response) => {
-	const { email, password } = req.body;
+	const { password } = req.body;
 	try {
-		let user = await User.findOne({ email });
-
-		if (user) {
-			return res.status(400).json({
-				ok: false,
-				msg: 'An user already has this email',
-			});
-		}
-		user = new User(req.body);
+		const user = new User(req.body);
 
 		//Encript password
 		const salt = bcrypt.genSaltSync();
@@ -27,8 +19,7 @@ const registerUser = async (req, res = response) => {
 
 		res.status(201).json({
 			ok: true,
-			uid: user.id,
-			name: user.name,
+			user,
 			token,
 		});
 	} catch (error) {
