@@ -3,7 +3,21 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { generateJWT } = require('../helpers/jwt');
 
-const registerUser = async (req, res = response) => {
+const getUsers = async (req = request, res = response) => {
+	const { limit = 5, from = 0 } = req.query;
+	const query = { isActive: true };
+
+	const [total, usuarios] = await Promise.all([
+		User.countDocuments(query),
+		User.find(query).skip(Number(from)).limit(Number(limit)),
+	]);
+
+	res.json({
+		total,
+		usuarios,
+	});
+};
+const registerUser = async (req = request, res = response) => {
 	const { password } = req.body;
 	try {
 		const user = new User(req.body);
@@ -31,7 +45,7 @@ const registerUser = async (req, res = response) => {
 	}
 };
 
-const loginUser = async (req, res = response) => {
+const loginUser = async (req = request, res = response) => {
 	const { email, password } = req.body;
 	try {
 		let user = await User.findOne({ email });
@@ -70,7 +84,7 @@ const loginUser = async (req, res = response) => {
 	}
 };
 
-const revalidateToken = async (req, res = response) => {
+const revalidateToken = async (req = request, res = response) => {
 	const uid = req.uid;
 	const name = req.name;
 
@@ -97,9 +111,16 @@ const updateUser = async (req = request, res = response) => {
 	});
 };
 
+const deleteUser = async (req = request, res = response) => {
+	const { id } = req.params;
+	//This doesn't remove entirely from the db, it just change its active state to false
+	const usuario = await User.findByIdAndUpdate(id, { isActive: false });
+	res.json(usuario);
+};
+
 module.exports = {
 	registerUser,
-	loginUser,
 	updateUser,
-	revalidateToken,
+	deleteUser,
+	getUsers,
 };

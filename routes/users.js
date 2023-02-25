@@ -1,26 +1,25 @@
-/**Rutas de usuarios /Auth
- * host + api/auth
+/**Rutas de usuarios /Users
+ * host + api/users
  */
 
 const { Router } = require('express');
 const { check } = require('express-validator');
-const { registerUser, loginUser, revalidateToken, updateUser } = require('../controllers/auth');
+const { registerUser, updateUser, deleteUser, getUsers } = require('../controllers/users');
 const { validateFields } = require('../middlewares/validateFields');
-const { validateJWT } = require('../middlewares/validate-jwt');
 const { isValidRole, checkEmailExists, checkUserById } = require('../helpers/dbValidators');
 
 const router = Router();
-
-router.post(
-	'/',
-	[
-		//Middlewares
-		check('email', 'Email is required').isEmail(),
-		check('password', 'Password must be at least 6 characters').isLength({ min: 6 }),
-		validateFields,
-	],
-	loginUser
-);
+router.get('/', getUsers);
+// router.post(
+// 	'/',
+// 	[
+// 		//Middlewares
+// 		check('email', 'Email is required').isEmail(),
+// 		check('password', 'Password must be at least 6 characters').isLength({ min: 6 }),
+// 		validateFields,
+// 	],
+// 	loginUser
+// );
 
 router.post(
 	'/register',
@@ -40,13 +39,18 @@ router.post(
 router.put(
 	'/:id',
 	[
-		check('id', 'No es un Id valido').isMongoId(),
+		check('id', 'Not a valid id').isMongoId(),
 		check('id').custom(checkUserById),
 		check('role').custom(isValidRole),
 		validateFields,
 	],
 	updateUser
 );
-router.get('/renew', validateJWT, revalidateToken);
+router.delete(
+	'/:id',
+	[check('id', 'Not a valid id').isMongoId(), check('id').custom(checkUserById), validateFields],
+	deleteUser
+);
+// router.get('/renew', validateJWT, revalidateToken);
 
 module.exports = router;
