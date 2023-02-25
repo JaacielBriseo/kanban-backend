@@ -71,7 +71,7 @@ const createNewTask = async (req, res) => {
 };
 
 const deleteBoard = async (req = request, res = response) => {
-	const { userId, boardId } = req.body;
+	const { userId, boardId } = req.params;
 	try {
 		const board = await Boards.findOne({ userId });
 		if (!board) {
@@ -95,10 +95,50 @@ const deleteBoard = async (req = request, res = response) => {
 		});
 	}
 };
+const deleteTask = async (req, res) => {
+	const { userId, boardId, columnId, taskId } = req.params;
+	if (!userId || !boardId || !columnId || !taskId) {
+		return res.status(400).json({ error: 'Invalid parameters' });
+	}
+
+	try {
+		const result = await Boards.findOneAndUpdate(
+			{
+				userId,
+				'boards.boardId': boardId,
+				'boards.columns.columnId': columnId,
+				'boards.columns.tasks.taskId': taskId,
+			},
+			{
+				$pull: {
+					'boards.$[board].columns.$[column].tasks': { taskId: taskId },
+				},
+			},
+			{
+				arrayFilters: [{ 'board.boardId': boardId }, { 'column.columnId': columnId }, { 'task.taskId': taskId }],
+				new: true,
+			}
+		);
+
+		if (!result) {
+			return res.status(404).json({ error: 'Task not found' });
+		}
+
+		res.json(result);
+	} catch (error) {
+		console.error(error);
+		if (error.name === 'ValidationError') {
+			return res.status(400).json({ error: error.message });
+		} else {
+			return res.status(500).json({ error: `Server error ${error} Contact the admin` });
+		}
+	}
+};
 
 module.exports = {
 	createBoard,
 	createNewTask,
 	deleteBoard,
+	deleteTask,
 	fetchBoards,
 };
