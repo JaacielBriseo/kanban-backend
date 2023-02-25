@@ -36,8 +36,7 @@ const loginUser = async (req = request, res = response) => {
 
 		res.json({
 			ok: true,
-			uid: user.id,
-			name: user.name,
+			user,
 			token,
 		});
 	} catch (error) {
@@ -50,16 +49,15 @@ const loginUser = async (req = request, res = response) => {
 };
 
 const revalidateToken = async (req = request, res = response) => {
-	const uid = req.uid;
-	const name = req.name;
-
+	const user = req.user;
 	//Generate new token and return in this petition
 
-	const token = await generateJWT(uid, name);
+	const token = await generateJWT(user._id, user.name);
 
 	res.json({
 		ok: true,
 		token,
+		user,
 	});
 };
 
