@@ -16,7 +16,25 @@ const isAdminRole = (req = request, res = response, next) => {
 	}
 	next();
 };
+const hasRole = (...roles) => {
+	return (req = request, res = response, next) => {
+		if (!req.user) {
+			return res.status(500).json({
+				ok: false,
+				msg: 'Validate token first.',
+			});
+		}
+		if (!roles.includes(req.user.role)) {
+			return res.status(401).json({
+				ok: false,
+				msg: `This services requires ${roles}`,
+			});
+		}
+		next();
+	};
+};
 
 module.exports = {
 	isAdminRole,
+	hasRole,
 };
