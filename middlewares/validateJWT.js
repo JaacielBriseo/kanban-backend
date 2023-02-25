@@ -1,7 +1,7 @@
 const { response, request } = require('express');
 const jwt = require('jsonwebtoken');
-
-const validateJWT = (req = request, res = response, next) => {
+const User = require('../models/User');
+const validateJWT = async (req = request, res = response, next) => {
 	//x-token headers
 	const token = req.header('x-token');
 
@@ -13,17 +13,31 @@ const validateJWT = (req = request, res = response, next) => {
 	}
 	try {
 		const payload = jwt.verify(token, process.env.SECRET_JWT_SEED);
-		console.log(payload);
-		req.uid = payload.uid;
-		req.name = payload.name;
+
+		//User that matches the payload.uid
+		const user = await User.findById(payload.uid);
+		if (!user) {
+			return res.status(401).json({
+				ok: false,
+				msg: 'User doesn`t exist on db.',
+			});
+		}
+
+		//Verify if uid is active
+		if (!user.isActive) {
+			return res.status(401).json({
+				ok: false,
+				msg: 'Inactive user.',
+			});
+		}
+		req.user = user;
+		next();
 	} catch (error) {
 		return res.status(401).json({
 			ok: false,
-			msg: 'Unvalid token',
+			msg: 'Unvalid token.',
 		});
 	}
-
-	next();
 };
 
 module.exports = {

@@ -8,6 +8,7 @@ const { registerUser, updateUser, deleteUser, getUsers } = require('../controlle
 const { validateFields } = require('../middlewares/validateFields');
 const { isValidRole, checkEmailExists, checkUserById } = require('../helpers/dbValidators');
 const { validateJWT } = require('../middlewares/validateJWT');
+const { isAdminRole } = require('../middlewares/validateRoles');
 
 const router = Router();
 router.get('/', getUsers);
@@ -37,7 +38,13 @@ router.put(
 );
 router.delete(
 	'/:id',
-	[validateJWT, check('id', 'Not a valid id').isMongoId(), check('id').custom(checkUserById), validateFields],
+	[
+		validateJWT,
+		isAdminRole,
+		check('id', 'Not a valid id').isMongoId(),
+		check('id').custom(checkUserById),
+		validateFields,
+	],
 	deleteUser
 );
 

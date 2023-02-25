@@ -61,7 +61,6 @@ const updateUser = async (req = request, res = response) => {
 
 const deleteUser = async (req = request, res = response) => {
 	const { id } = req.params;
-	//This doesn't remove entirely from the db, it just change its active state to false
 	const user = await User.findByIdAndUpdate(id, { isActive: false });
 	res.json(user);
 };
