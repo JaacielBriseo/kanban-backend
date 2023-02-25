@@ -13,8 +13,15 @@ const checkEmailExists = async (email = '') => {
 		throw new Error(`Email: ${email} is already registered on the db.`);
 	}
 };
+const checkUserById = async id => {
+	const isUserRegistered = await User.findById(id);
+	if (!isUserRegistered) {
+		throw new Error(`Id doesnt exist in the db ${id}.`);
+	}
+};
 
 module.exports = {
 	isValidRole,
-  checkEmailExists
+	checkEmailExists,
+	checkUserById,
 };

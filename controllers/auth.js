@@ -1,4 +1,4 @@
-const { response } = require('express');
+const { response, request } = require('express');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { generateJWT } = require('../helpers/jwt');
@@ -83,9 +83,23 @@ const revalidateToken = async (req, res = response) => {
 		token,
 	});
 };
+const updateUser = async (req = request, res = response) => {
+	const { id } = req.params;
+	const { _id, password, google, email, ...rest } = req.body;
+	if (password) {
+		const salt = bcrypt.genSaltSync();
+		rest.password = bcrypt.hashSync(password, salt);
+	}
+	const usuario = await User.findByIdAndUpdate(id, rest);
+	res.status(200).json({
+		ok: true,
+		usuario,
+	});
+};
 
 module.exports = {
 	registerUser,
 	loginUser,
+	updateUser,
 	revalidateToken,
 };

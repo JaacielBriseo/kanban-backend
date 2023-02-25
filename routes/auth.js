@@ -4,10 +4,10 @@
 
 const { Router } = require('express');
 const { check } = require('express-validator');
-const { registerUser, loginUser, revalidateToken } = require('../controllers/auth');
+const { registerUser, loginUser, revalidateToken, updateUser } = require('../controllers/auth');
 const { validateFields } = require('../middlewares/validateFields');
 const { validateJWT } = require('../middlewares/validate-jwt');
-const { isValidRole, checkEmailExists } = require('../helpers/dbValidators');
+const { isValidRole, checkEmailExists, checkUserById } = require('../helpers/dbValidators');
 
 const router = Router();
 
@@ -37,7 +37,16 @@ router.post(
 	],
 	registerUser
 );
-
+router.put(
+	'/:id',
+	[
+		check('id', 'No es un Id valido').isMongoId(),
+		check('id').custom(checkUserById),
+		check('role').custom(isValidRole),
+		validateFields,
+	],
+	updateUser
+);
 router.get('/renew', validateJWT, revalidateToken);
 
 module.exports = router;
