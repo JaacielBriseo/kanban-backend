@@ -1,10 +1,14 @@
 const { Router } = require('express');
-const { createBoard, fetchBoards, createNewTask, deleteBoard, deleteTask } = require('../controllers/boards');
+const { fetchBoards, createBoard } = require('../controllers/boards');
+const { validateJWT,validateFields } = require('../middlewares');
+const { check } = require('express-validator');
 const router = Router();
 
 router.get('/', fetchBoards);
-router.post('/createBoard', createBoard);
-router.post('/createTask', createNewTask);
-router.delete('/:userId/:boardId', deleteBoard);
-router.delete('/:userId/:boardId/:columnId/:taskId', deleteTask);
+router.post('/',[
+  validateJWT,
+  check('boardName','Name field is required.').not().isEmpty(),
+  check('userId','User ID to create a board is required.').not().isEmpty(),
+  validateFields
+],createBoard)
 module.exports = router;
