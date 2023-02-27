@@ -1,3 +1,4 @@
+const Board = require('../models/Board');
 const Role = require('../models/Role');
 const User = require('../models/User');
 
@@ -19,9 +20,16 @@ const checkUserById = async id => {
 		throw new Error(`Id doesnt exist in the db ${id}.`);
 	}
 };
+const checkBoardExists = async boardId => {
+	const isBoardOnDB = await Board.findById(boardId);
+	if (!isBoardOnDB) {
+		throw new Error(`Board with ID: ${boardId} doesn't exist on db.`);
+	}
+};
 
 module.exports = {
 	isValidRole,
 	checkEmailExists,
 	checkUserById,
+	checkBoardExists,
 };

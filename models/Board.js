@@ -8,7 +8,7 @@ const SubtaskSchema = Schema({
 	isCompleted: {
 		type: Boolean,
 		required: true,
-		default:false,
+		default: false,
 	},
 });
 
@@ -38,15 +38,16 @@ const ColumnSchema = Schema({
 });
 
 const BoardSchema = Schema({
-	boardName: {
-		type: String,
-		required: [true, 'Board name is required.'],
-	},
 	userId: {
 		type: Schema.Types.ObjectId,
 		ref: 'User',
 		required: true,
 	},
+	boardName: {
+		type: String,
+		required: [true, 'Board name is required.'],
+	},
 	columns: [ColumnSchema],
 });
+
 module.exports = model('Board', BoardSchema);
