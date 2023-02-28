@@ -23,9 +23,6 @@ const TaskSchema = Schema({
 	status: {
 		type: String,
 	},
-	statusId: {
-		type: String,
-	},
 	subtasks: [SubtaskSchema],
 });
 
@@ -49,5 +46,24 @@ const BoardSchema = Schema({
 	},
 	columns: [ColumnSchema],
 });
-
+BoardSchema.methods.toJSON = function () {
+	const { __v, _id, userId, ...board } = this.toObject();
+	board.boardId = _id;
+	board.columns = board.columns.map(column => {
+		const { _id, ...rest } = column;
+		rest.columnId = _id;
+		rest.tasks = rest.tasks.map(task => {
+			const { _id, ...rest } = task;
+			rest.taskId = _id;
+			rest.subtasks = rest.subtasks.map(subtask => {
+				const { _id, ...rest } = subtask;
+				rest.subtaskId = _id;
+				return rest;
+			});
+			return rest;
+		});
+		return rest;
+	});
+	return board;
+};
 module.exports = model('Board', BoardSchema);

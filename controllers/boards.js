@@ -1,9 +1,10 @@
 const { request, response } = require('express');
 const Board = require('../models/Board');
+const { generateUpdateBoardArgs } = require('../helpers/generateUpdateBoardArgs');
 
 //! Get boards by user
 const getUserBoards = async (req = request, res = response) => {
-	const { userId } = req.params;
+	const userId = req.user._id;
 	try {
 		const userBoards = await Board.find({ userId });
 		res.json({
@@ -20,15 +21,14 @@ const getUserBoards = async (req = request, res = response) => {
 
 //! Create new board
 const createNewBoard = async (req = request, res = response) => {
-	const { userId, columns, boardName } = req.body;
+	const { columns, boardName } = req.body;
+	const userId = req.user._id;
 	try {
 		const board = new Board({ userId, columns, boardName });
 		await board.save();
 		res.status(201).json({
 			ok: true,
-			boardName,
-			columns,
-			boardId: board._id,
+			board,
 		});
 	} catch (error) {
 		res.json({
@@ -57,11 +57,17 @@ const deleteBoard = async (req = request, res = response) => {
 
 //! Update board
 const updateBoard = async (req = request, res = response) => {
-	const { id } = req.params;
-	const { userId, ...rest } = req.body;
+	const { boardId } = req.params;
+	const { columnId, taskId, subtaskId } = req.query;
+	const { updatedObject } = req.body;
+	const argsToUpdate = generateUpdateBoardArgs(boardId, columnId, taskId, subtaskId, updatedObject);
 	try {
-		const newBoard = await Board.findByIdAndUpdate(id, rest, { new: true });
-		res.status(201).json(newBoard);
+		const updatedBoard = await Board.findOneAndUpdate(argsToUpdate.filter, argsToUpdate.update, argsToUpdate.options);
+		res.status(201).json({
+			ok: true,
+			msg: `Update Successful.`,
+			updatedBoard,
+		});
 	} catch (error) {
 		res.json({
 			ok: false,
@@ -70,31 +76,9 @@ const updateBoard = async (req = request, res = response) => {
 	}
 };
 
-//! Update task
-const updateTask = async (req = request, res = response) => {
-	const { id } = req.params;
-	const { taskId, columnId, ...rest } = req.body;
-	try {
-		const updatedTask = await Board.findOneAndUpdate(
-			{ _id: id, 'columns._id': columnId, 'columns.tasks._id': taskId },
-			{ $set: { 'columns.$.tasks': rest } },
-			{ new: true }
-		);
-		res.status(201).json({
-			ok: true,
-			updatedTask,
-		});
-	} catch (error) {
-		res.json({
-			ok: false,
-			msg: `Some error happened: ${error}`,
-		});
-	}
-};
 module.exports = {
 	createNewBoard,
 	getUserBoards,
 	deleteBoard,
 	updateBoard,
-	updateTask,
 };

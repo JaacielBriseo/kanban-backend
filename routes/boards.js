@@ -1,54 +1,51 @@
 const { Router } = require('express');
 const { getUserBoards, createNewBoard, deleteBoard, updateBoard, updateTask } = require('../controllers/boards');
-const { validateJWT, validateFields, hasRole } = require('../middlewares');
+const { validateJWT, validateFields } = require('../middlewares');
 const { check } = require('express-validator');
-const { checkUserById, checkBoardExists } = require('../helpers/dbValidators');
+const { checkBoardExists } = require('../helpers/dbValidators');
+const checkRepeatedBoardName = require('../middlewares/checkRepeatedBoardName');
+const checkBoardOwner = require('../middlewares/checkBoardOwner');
 const router = Router();
 
 //Get user boards
-router.get(
-	'/:id',
-	[validateJWT, check('id', 'A valid user ID is required.').isMongoId(), validateFields],
-	getUserBoards
-);
+router.get('/', validateJWT, getUserBoards);
+
 //Create a new board
 router.post(
 	'/',
 	[
 		validateJWT,
-		check('userId', 'A valid user ID is required.').isMongoId(),
 		check('boardName', 'A name for the new board is required.').not().isEmpty(),
+		checkRepeatedBoardName,
 		validateFields,
 	],
 	createNewBoard
 );
+
 //Delete a board
 router.delete(
-	'/:id',
+	'/:boardId',
 	[
 		validateJWT,
-		check('id', 'Board ID must be a valid ID.').isMongoId(),
-		check('id').custom(checkBoardExists),
+		check('boardId', 'Board ID must be a valid ID.').isMongoId(),
+		check('boardId').custom(checkBoardExists),
+		checkBoardOwner,
 		validateFields,
 	],
 	deleteBoard
 );
+
 //Update a board
 router.put(
-	'/:id',
-	[validateJWT, check('id', 'Board ID must be a valid ID.').isMongoId(), check('id').custom(checkBoardExists)],
-	updateBoard
-);
-//Update a task
-router.put(
-	'/:id/task',
+	'/:boardId',
 	[
 		validateJWT,
-		check('id', 'Board ID must be a valid ID.').isMongoId(),
-		check('taskId', 'Board ID must be a valid ID.').isMongoId(),
 		check('boardId', 'Board ID must be a valid ID.').isMongoId(),
-		check('id').custom(checkBoardExists),
+		check('boardId').custom(checkBoardExists),
+		checkBoardOwner,
+		validateFields,
 	],
-	updateTask
+	updateBoard
 );
+
 module.exports = router;
