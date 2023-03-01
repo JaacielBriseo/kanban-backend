@@ -1,8 +1,9 @@
 const express = require('express');
-const { dbConnection } = require('./database/config');
-require('dotenv').config();
-const cors = require('cors');
 const mongoose = require('mongoose');
+const { dbConnection } = require('./database/config');
+const cors = require('cors');
+const fileUpload = require('express-fileupload');
+require('dotenv').config();
 
 //Crear servidor de express
 const app = express();
@@ -20,10 +21,20 @@ app.use(express.static('public'));
 //Lectura y parseo del body
 app.use(express.json());
 
+//File Upload middleware
+app.use(
+	fileUpload({
+		useTempFiles: true,
+		tempFileDir: '/tmp/',
+		createParentPath: true,
+	})
+);
+
 //Rutas
 app.use('/api/users', require('./routes/users'));
 app.use('/api/boards', require('./routes/boards'));
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/images', require('./routes/images'));
 
 //Escuchar peticiones
 app.listen(process.env.PORT, () => {

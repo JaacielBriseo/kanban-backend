@@ -8,18 +8,21 @@ const isValidRole = async (role = '') => {
 		throw new Error(`Role: ${role} is not registered on the db.`);
 	}
 };
+
 const checkEmailExists = async (email = '') => {
 	const isEmailRegistered = await User.findOne({ email });
 	if (isEmailRegistered) {
 		throw new Error(`Email: ${email} is already registered on the db.`);
 	}
 };
+
 const checkUserById = async id => {
 	const isUserRegistered = await User.findById(id);
 	if (!isUserRegistered) {
 		throw new Error(`Id doesnt exist in the db ${id}.`);
 	}
 };
+
 const checkBoardExists = async boardId => {
 	const isBoardOnDB = await Board.findById(boardId);
 	if (!isBoardOnDB) {
@@ -27,9 +30,18 @@ const checkBoardExists = async boardId => {
 	}
 };
 
+const validCollections = (collection = '', collections = []) => {
+	const isIncluded = collections.includes(collection);
+	if (!isIncluded) {
+		throw new Error(`Collection : ${collection} is not valid - Valid collections are : ${collections}`);
+	}
+	return true;
+};
+
 module.exports = {
 	isValidRole,
 	checkEmailExists,
 	checkUserById,
 	checkBoardExists,
+	validCollections,
 };
