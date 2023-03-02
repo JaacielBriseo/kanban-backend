@@ -27,6 +27,7 @@ const generateUpdateBoardArgs = (boardId, columnId, taskId, subtaskId, updatedOb
 			'columns.$[column].tasks.$[task].title': updatedObject.title,
 			'columns.$[column].tasks.$[task].description': updatedObject.description,
 			'columns.$[column].tasks.$[task].status': updatedObject.status,
+			'columns.$[column].tasks.$[task].subtasks': updatedObject.subtasks,
 		};
 
 		options.arrayFilters = [{ 'column._id': columnId }, { 'task._id': taskId }];
@@ -34,9 +35,9 @@ const generateUpdateBoardArgs = (boardId, columnId, taskId, subtaskId, updatedOb
 		// Update a column
 		filter._id = boardId;
 		filter['columns._id'] = columnId;
-
 		update.$set = {
 			'columns.$[column].columnName': updatedObject.columnName,
+			'columns.$[column].tasks': updatedObject.tasks,
 		};
 
 		options.arrayFilters = [{ 'column._id': columnId }];

@@ -38,6 +38,7 @@ const validCollections = (collection = '', collections = []) => {
 	return true;
 };
 
+
 module.exports = {
 	isValidRole,
 	checkEmailExists,

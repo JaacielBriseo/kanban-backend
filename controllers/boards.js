@@ -1,6 +1,6 @@
 const { request, response } = require('express');
 const Board = require('../models/Board');
-const { generateUpdateBoardArgs } = require('../helpers/generateUpdateBoardArgs');
+const { generateUpdateBoardArgs } = require('../helpers');
 
 //! Get boards by user
 const getUserBoards = async (req = request, res = response) => {
@@ -63,9 +63,31 @@ const updateBoard = async (req = request, res = response) => {
 	const argsToUpdate = generateUpdateBoardArgs(boardId, columnId, taskId, subtaskId, updatedObject);
 	try {
 		const updatedBoard = await Board.findOneAndUpdate(argsToUpdate.filter, argsToUpdate.update, argsToUpdate.options);
+		if (
+			updatedObject.status &&
+			updatedObject.status !==
+				updatedBoard.columns.find(column => column.tasks.find(task => task._id.toString() === taskId)).columnName
+		) {
+			const tasksArray = updatedBoard.columns.map(column => column.tasks);
+			const flattedTaskArray = tasksArray.flatMap(task => task);
+			const updatedTask = flattedTaskArray.find(task => task._id.toString() === taskId);
+			const newColumnForTask = updatedBoard.columns.find(column => column.columnName === updatedObject.status);
+			const originalColumnForTask = updatedBoard.columns.find(column => column.tasks.includes(updatedTask));
+			if (originalColumnForTask && originalColumnForTask !== newColumnForTask) {
+				originalColumnForTask.tasks.splice(originalColumnForTask.tasks.indexOf(updatedTask), 1);
+			}
+			newColumnForTask.tasks.push({
+				title: updatedTask.title,
+				description: updatedTask.description,
+				status: updatedTask.status,
+				subtasks: updatedTask.subtasks,
+				_id: updatedTask._id,
+			});
+		}
+		await updatedBoard.save();
+
 		res.status(201).json({
 			ok: true,
-			msg: `Update Successful.`,
 			updatedBoard,
 		});
 	} catch (error) {
