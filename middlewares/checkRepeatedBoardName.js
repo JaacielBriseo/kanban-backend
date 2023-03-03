@@ -1,4 +1,4 @@
-const Board = require('../models/Board');
+const {Board} = require('../models/Board');
 const checkRepeatedBoardName = async (req, res, next) => {
 	const { boardName } = req.body;
 	const userId = req.user._id;

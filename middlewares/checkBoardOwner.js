@@ -1,4 +1,4 @@
-const Board = require('../models/Board');
+const {Board} = require('../models/Board');
 const checkBoardOwner = async (req, res, next) => {
 	const { boardId } = req.params;
 	const userId = req.user._id;

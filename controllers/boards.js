@@ -1,12 +1,24 @@
 const { request, response } = require('express');
-const Board = require('../models/Board');
+const { Board } = require('../models/Board');
 const { generateUpdateBoardArgs } = require('../helpers');
+const handleChangeTaskColumn = require('../helpers/handleChangeTaskColumn');
+const { generateDeleteArgs } = require('../helpers/generateDeleteArgs');
 
 //! Get boards by user
 const getUserBoards = async (req = request, res = response) => {
 	const userId = req.user._id;
 	try {
-		const userBoards = await Board.find({ userId });
+		const userBoards = await Board.find({ userId }).populate({
+			path: 'columns',
+			populate: {
+				path: 'tasks',
+				populate: {
+					path: 'subtasks',
+					model: 'Subtask',
+				},
+			},
+		});
+
 		res.json({
 			ok: true,
 			userBoards,
@@ -21,10 +33,10 @@ const getUserBoards = async (req = request, res = response) => {
 
 //! Create new board
 const createNewBoard = async (req = request, res = response) => {
-	const { columns, boardName } = req.body;
+	const { boardName } = req.body;
 	const userId = req.user._id;
 	try {
-		const board = new Board({ userId, columns, boardName });
+		const board = new Board({ userId, boardName });
 		await board.save();
 		res.status(201).json({
 			ok: true,
@@ -38,14 +50,15 @@ const createNewBoard = async (req = request, res = response) => {
 	}
 };
 
-//! Delete board
-const deleteBoard = async (req = request, res = response) => {
-	const { boardId } = req.params;
+//! Delete Field from the board or entire board depending on params the frontend send.
+const deleteField = async (req = request, res = response) => {
+	const { boardId, columnId, taskId } = req.params;
+	const { filter, options, update } = generateDeleteArgs(boardId, columnId, taskId);
 	try {
-		await Board.findByIdAndDelete(boardId);
+		await Board.findOneAndUpdate(filter, update, options);
 		res.status(201).json({
 			ok: true,
-			msg: `Board deleted.`,
+			msg: `Task deleted.`,
 		});
 	} catch (error) {
 		res.json({
@@ -60,9 +73,9 @@ const updateBoard = async (req = request, res = response) => {
 	const { boardId } = req.params;
 	const { columnId, taskId, subtaskId } = req.query;
 	const { updatedObject } = req.body;
-	const argsToUpdate = generateUpdateBoardArgs(boardId, columnId, taskId, subtaskId, updatedObject);
+	const { filter, options, update } = generateUpdateBoardArgs(boardId, columnId, taskId, subtaskId, updatedObject);
 	try {
-		const updatedBoard = await Board.findOneAndUpdate(argsToUpdate.filter, argsToUpdate.update, argsToUpdate.options);
+		const updatedBoard = await Board.findOneAndUpdate(filter, update, options);
 		if (
 			updatedObject.status &&
 			updatedObject.status !==
@@ -71,18 +84,7 @@ const updateBoard = async (req = request, res = response) => {
 			const tasksArray = updatedBoard.columns.map(column => column.tasks);
 			const flattedTaskArray = tasksArray.flatMap(task => task);
 			const updatedTask = flattedTaskArray.find(task => task._id.toString() === taskId);
-			const newColumnForTask = updatedBoard.columns.find(column => column.columnName === updatedObject.status);
-			const originalColumnForTask = updatedBoard.columns.find(column => column.tasks.includes(updatedTask));
-			if (originalColumnForTask && originalColumnForTask !== newColumnForTask) {
-				originalColumnForTask.tasks.splice(originalColumnForTask.tasks.indexOf(updatedTask), 1);
-			}
-			newColumnForTask.tasks.push({
-				title: updatedTask.title,
-				description: updatedTask.description,
-				status: updatedTask.status,
-				subtasks: updatedTask.subtasks,
-				_id: updatedTask._id,
-			});
+			handleChangeTaskColumn(updatedTask, updatedBoard);
 		}
 		await updatedBoard.save();
 
@@ -101,6 +103,6 @@ const updateBoard = async (req = request, res = response) => {
 module.exports = {
 	createNewBoard,
 	getUserBoards,
-	deleteBoard,
+	deleteField,
 	updateBoard,
 };

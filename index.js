@@ -31,10 +31,13 @@ app.use(
 );
 
 //Rutas
-app.use('/api/users', require('./routes/users'));
-app.use('/api/boards', require('./routes/boards'));
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/images', require('./routes/images'));
+app.use('/api/auth'    , require('./routes/auth'));
+app.use('/api/users'   , require('./routes/users'));
+app.use('/api/images'  , require('./routes/images'));
+app.use('/api/boards'  , require('./routes/boards'));
+app.use('/api/columns' , require('./routes/columns'));
+app.use('/api/tasks'   , require('./routes/tasks'));
+app.use('/api/subtasks', require('./routes/subtasks'));
 
 //Escuchar peticiones
 app.listen(process.env.PORT, () => {

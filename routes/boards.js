@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { getUserBoards, createNewBoard, deleteBoard, updateBoard, updateTask } = require('../controllers/boards');
+const { getUserBoards, createNewBoard, deleteField, updateBoard } = require('../controllers/boards');
 const { validateJWT, validateFields } = require('../middlewares');
 const { check } = require('express-validator');
 const { checkBoardExists } = require('../helpers/dbValidators');
@@ -22,9 +22,9 @@ router.post(
 	createNewBoard
 );
 
-//Delete a board
+//Delete a board or a field depending on params.
 router.delete(
-	'/:boardId',
+	'/:boardId/:columnId/:taskId',
 	[
 		validateJWT,
 		check('boardId', 'Board ID must be a valid ID.').isMongoId(),
@@ -32,7 +32,7 @@ router.delete(
 		checkBoardOwner,
 		validateFields,
 	],
-	deleteBoard
+	deleteField
 );
 
 //Update a board
