@@ -2,8 +2,8 @@ const { Task } = require('../models/Task');
 const { request, response } = require('express');
 
 const createTask = async (req = request, res = response) => {
-	const { column, title, description, status } = req.body;
-	const task = new Task({ column, title, description, status });
+	const { column, title, description, status, subtasks, parentColumnId } = req.body;
+	const task = new Task({ column, title, description, status, subtasks, parentColumnId });
 	await task.save();
 	res.json({
 		ok: true,

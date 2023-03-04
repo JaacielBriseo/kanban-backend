@@ -31,13 +31,11 @@ app.use(
 );
 
 //Rutas
-app.use('/api/auth'    , require('./routes/auth'));
-app.use('/api/users'   , require('./routes/users'));
-app.use('/api/images'  , require('./routes/images'));
-app.use('/api/boards'  , require('./routes/boards'));
-app.use('/api/columns' , require('./routes/columns'));
-app.use('/api/tasks'   , require('./routes/tasks'));
-app.use('/api/subtasks', require('./routes/subtasks'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/images', require('./routes/images'));
+app.use('/api/kanban/boards', require('./routes/boards'));
+app.use('/api/kanban/tasks', require('./routes/tasks'));
 
 //Escuchar peticiones
 app.listen(process.env.PORT, () => {

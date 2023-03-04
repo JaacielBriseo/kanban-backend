@@ -1,10 +1,9 @@
 const { Router } = require('express');
-const { validateJWT, validateFields } = require('../middlewares');
-const { check } = require('express-validator');
+const { validateJWT } = require('../middlewares');
 const { createTask, updateTask, deleteTask } = require('../controllers/tasks');
 const router = Router();
 
 router.post('/', validateJWT, createTask);
-router.put('/:taskId', updateTask);
-router.delete('/:taskId', deleteTask);
+router.put('/:taskId', validateJWT, updateTask);
+router.delete('/:taskId', validateJWT, deleteTask);
 module.exports = router;
