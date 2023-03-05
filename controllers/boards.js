@@ -2,19 +2,18 @@ const { request, response } = require('express');
 const { Board } = require('../models/Board');
 const { Task } = require('../models/Task');
 const { generateUpdateBoardArgs } = require('../helpers');
-
 //! Get boards by user
 const getUserBoards = async (req = request, res = response) => {
 	const userId = req.user._id;
 	try {
-		const boards = await Board.find({ userId });
+		const boards = await Board.find({ manager: userId }).populate('manager', 'name');
 
-		// Retrieve all tasks for the user
+		//? Retrieve all tasks for the user
 		const tasks = await Task.find({
 			parentColumnId: { $in: boards.map(board => board.columns.map(column => column._id)).flat() },
 		});
 
-		// Populate tasks for each column in each board
+		//? Populate tasks for each column in each board
 		boards.forEach(board => {
 			board.columns.forEach(column => {
 				const tasksForColumn = tasks.filter(task => task.parentColumnId.equals(column._id));
@@ -24,6 +23,7 @@ const getUserBoards = async (req = request, res = response) => {
 		res.json({
 			ok: true,
 			boards,
+			tasks,
 		});
 	} catch (error) {
 		res.json({
@@ -38,7 +38,7 @@ const createNewBoard = async (req = request, res = response) => {
 	const userId = req.user._id;
 	const data = req.body;
 	try {
-		const board = new Board({ userId, ...data });
+		const board = new Board({ manager: userId, ...data });
 		await board.save();
 		res.status(201).json({
 			ok: true,

@@ -14,11 +14,17 @@ const TaskSchema = Schema({
 	},
 	subtasks: [
 		{
-			title: { type: String, required: [true, 'Subtask title is required.'] },
+			subtaskTitle: { type: String, required: [true, 'Subtask title is required.'] },
 			isCompleted: { type: Boolean, default: false },
 		},
 	],
 	parentColumnId: { type: Schema.Types.ObjectId, required: [true, 'A parent column ID is required.'] },
+	comments: [
+		{
+			author: { type: Schema.Types.ObjectId, required: [true, 'Id of the author is required.'] },
+			text: { type: String, required: [true, 'A text to post a comment is required.'] },
+		},
+	],
 });
 TaskSchema.methods.toJSON = function () {
 	const { __v, _id, ...task } = this.toObject();

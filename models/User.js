@@ -20,7 +20,7 @@ const UserSchema = Schema({
 	role: {
 		type: String,
 		required: true,
-		emun: ['ADMIN_ROLE', 'USER_ROLE', 'SUPER_ROLE'],
+		enum: ['MANAGER_ROLE', 'SUPERVISOR_ROLE', 'USER_ROLE'],
 	},
 	isActive: {
 		type: Boolean,
@@ -30,6 +30,12 @@ const UserSchema = Schema({
 		type: Boolean,
 		default: false,
 	},
+	boards: [
+		{
+			type: Schema.Types.ObjectId,
+			ref: 'Board',
+		},
+	],
 });
 UserSchema.methods.toJSON = function () {
 	const { __v, password, _id, ...user } = this.toObject();
