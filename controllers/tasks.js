@@ -1,3 +1,4 @@
+const { generateUpdateTaskArgs } = require('../helpers/generateUpdateTaskArgs');
 const { Task } = require('../models/Task');
 const { request, response } = require('express');
 
@@ -12,18 +13,19 @@ const createTask = async (req = request, res = response) => {
 };
 const updateTask = async (req = request, res = response) => {
 	const { taskId } = req.params;
-	const updatedData = req.body;
+	const { updatedTaskData } = req.body;
+	const { filter, options, update } = generateUpdateTaskArgs(taskId, updatedTaskData);
 	try {
-		const task = await Task.findByIdAndUpdate(taskId, updatedData, { new: true });
+		const updatedTask = await Task.findOneAndUpdate(filter, update, options);
 
-		res.json({
+		res.status(201).json({
 			ok: true,
-			task,
+			updatedTask,
 		});
 	} catch (error) {
 		res.json({
 			ok: false,
-			msg: `Some error : ${error}`,
+			msg: `Some error happened: ${error}`,
 		});
 	}
 };

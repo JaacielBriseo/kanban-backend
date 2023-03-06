@@ -2,11 +2,12 @@ const { request, response } = require('express');
 const { Board } = require('../models/Board');
 const { Task } = require('../models/Task');
 const { generateUpdateBoardArgs } = require('../helpers');
+const User = require('../models/User');
 //! Get boards by user
 const getUserBoards = async (req = request, res = response) => {
 	const userId = req.user._id;
 	try {
-		const boards = await Board.find({ manager: userId }).populate('manager', 'name');
+		const boards = await Board.find({ manager: userId }).populate('manager', 'name').populate('members','name');
 
 		//? Retrieve all tasks for the user
 		const tasks = await Task.find({
@@ -72,9 +73,8 @@ const deleteBoard = async (req = request, res = response) => {
 //! Update board
 const updateBoard = async (req = request, res = response) => {
 	const { boardId } = req.params;
-	const { columnId } = req.query;
-	const { updatedObject } = req.body;
-	const { filter, options, update } = generateUpdateBoardArgs(boardId, columnId, updatedObject);
+	const { updatedBoardData } = req.body;
+	const { filter, options, update } = generateUpdateBoardArgs(boardId, updatedBoardData);
 	try {
 		const updatedBoard = await Board.findOneAndUpdate(filter, update, options);
 
@@ -90,9 +90,36 @@ const updateBoard = async (req = request, res = response) => {
 	}
 };
 
+const addMemberToBoard = async (req = request, res = response) => {
+	const userId = req.user._id;
+	const { boardId } = req.params;
+	const { email } = req.body; //Email of the user to add
+	try {
+		const { _id: newMemberId, name } = await User.findOne({ email });
+		const filter = { _id: boardId, manager: userId };
+		const update = { $push: { members: newMemberId } };
+		const board = await Board.findOneAndUpdate(filter, update, { new: true });
+		res.json({
+			ok: true,
+			// board,
+			board,
+			msg: `User : ${name} added correctly.`,
+		});
+	} catch (error) {
+		res.json({
+			ok: false,
+			msg: `Some error happened: ${error}`,
+		});
+	}
+};
+
 module.exports = {
+	//* Board CRUD's
 	createNewBoard,
 	getUserBoards,
 	deleteBoard,
 	updateBoard,
+
+	//* Users management operations
+	addMemberToBoard,
 };

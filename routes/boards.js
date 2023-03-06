@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { getUserBoards, createNewBoard, deleteBoard, updateBoard } = require('../controllers/boards');
+const { getUserBoards, createNewBoard, deleteBoard, updateBoard, addMemberToBoard } = require('../controllers/boards');
 const { validateJWT, validateFields } = require('../middlewares');
 const { check } = require('express-validator');
 const { checkBoardExists } = require('../helpers/dbValidators');
@@ -46,6 +46,19 @@ router.put(
 		validateFields,
 	],
 	updateBoard
+);
+
+//* Add member to a board so they can have access.
+router.post(
+	'/:boardId/members',
+	[
+		validateJWT,
+		check('boardId', 'Board ID must be a valid ID.').isMongoId(),
+		check('boardId').custom(checkBoardExists),
+		checkBoardOwner,
+		validateFields,
+	],
+	addMemberToBoard
 );
 
 module.exports = router;
