@@ -1,10 +1,12 @@
 const { generateUpdateTaskArgs } = require('../helpers/generateUpdateTaskArgs');
 const { Task } = require('../models/Task');
 const { request, response } = require('express');
+const User = require('../models/User');
 
 const createTask = async (req = request, res = response) => {
-	const { column, title, description, status, subtasks, parentColumnId } = req.body;
-	const task = new Task({ column, title, description, status, subtasks, parentColumnId });
+	const { title, description, status, subtasks, parentColumnId } = req.body;
+	const userId = req.user._id;
+	const task = new Task({ manager: userId, title, description, status, subtasks, parentColumnId });
 	await task.save();
 	res.json({
 		ok: true,
@@ -13,8 +15,9 @@ const createTask = async (req = request, res = response) => {
 };
 const updateTask = async (req = request, res = response) => {
 	const { taskId } = req.params;
-	const { updatedTaskData } = req.body;
+	const  updatedTaskData  = req.body;
 	const { filter, options, update } = generateUpdateTaskArgs(taskId, updatedTaskData);
+	console.log(taskId);
 	try {
 		const updatedTask = await Task.findOneAndUpdate(filter, update, options);
 
@@ -45,9 +48,31 @@ const deleteTask = async (req = request, res = response) => {
 		});
 	}
 };
+const assignUserToTask = async (req, res) => {
+	const userId = req.user._id;
+	const { taskId } = req.params;
+	const { email } = req.body.userToAssign;
+	try {
+		const userToAssign = await User.findOne({ email });
+		const filter = { _id: taskId, manager: userId };
+		const update = { $set: { assignedTo: userToAssign } };
+		const task = await Task.findOneAndUpdate(filter, update, { new: true });
+		res.json({
+			ok: true,
+			task,
+		});
+	} catch (error) {
+		res.json({
+			ok: false,
+			msg: `Some error : ${error}`,
+		});
+	}
+};
 
 module.exports = {
 	createTask,
 	updateTask,
 	deleteTask,
+
+	assignUserToTask,
 };

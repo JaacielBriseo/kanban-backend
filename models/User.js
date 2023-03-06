@@ -17,11 +17,6 @@ const UserSchema = Schema({
 	img: {
 		type: String,
 	},
-	role: {
-		type: String,
-		required: true,
-		enum: ['MANAGER_ROLE', 'SUPERVISOR_ROLE', 'USER_ROLE'],
-	},
 	isActive: {
 		type: Boolean,
 		default: true,

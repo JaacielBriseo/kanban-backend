@@ -21,10 +21,20 @@ const TaskSchema = Schema({
 	parentColumnId: { type: Schema.Types.ObjectId, required: [true, 'A parent column ID is required.'] },
 	comments: [
 		{
-			author: { type: Schema.Types.ObjectId, required: [true, 'Id of the author is required.'] },
+			author: { type: Schema.Types.ObjectId, required: [true, 'Id of the author is required.'], ref: 'User' },
 			text: { type: String, required: [true, 'A text to post a comment is required.'] },
 		},
 	],
+	assignedTo: {
+		type: Schema.Types.ObjectId,
+		ref: 'User',
+		default: null,
+	},
+	manager: {
+		type: Schema.Types.ObjectId,
+		ref: 'User',
+		required: [true, 'The manager ID must be specified.'],
+	},
 });
 TaskSchema.methods.toJSON = function () {
 	const { __v, _id, ...task } = this.toObject();
