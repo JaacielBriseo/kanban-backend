@@ -38,6 +38,26 @@ const getUserBoards = async (req = request, res = response) => {
 	}
 };
 
+const getBoardById = async (req = request, res = response) => {
+	const userId = req.user._id;
+	const boardId = req.params.boardId;
+	try {
+		const board = await Board.findOne({ _id: boardId })
+			.populate('manager', 'name email')
+			.populate('members', 'name email');
+		console.log(boardId);
+		res.json({
+			ok: true,
+			board,
+		});
+	} catch (error) {
+		res.json({
+			ok: false,
+			msg: `Some error happened: ${error}`,
+		});
+	}
+};
+
 //! Create new board
 const createNewBoard = async (req = request, res = response) => {
 	const userId = req.user._id;
@@ -125,4 +145,5 @@ module.exports = {
 
 	//* Users management operations
 	addMemberToBoard,
+	getBoardById,
 };

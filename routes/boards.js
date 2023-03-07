@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { getUserBoards, createNewBoard, deleteBoard, updateBoard, addMemberToBoard } = require('../controllers/boards');
+const { getUserBoards, createNewBoard, deleteBoard, updateBoard, addMemberToBoard, getBoardById } = require('../controllers/boards');
 const { validateJWT, validateFields } = require('../middlewares');
 const { check } = require('express-validator');
 const { checkBoardExists } = require('../helpers/dbValidators');
@@ -9,6 +9,8 @@ const router = Router();
 
 //Get user boards
 router.get('/', validateJWT, getUserBoards);
+
+router.get('/:boardId', validateJWT, getBoardById);
 
 //Create a new board
 router.post(
