@@ -7,12 +7,14 @@ const User = require('../models/User');
 const getUserBoards = async (req = request, res = response) => {
 	const userId = req.user._id;
 	try {
-		const boards = await Board.find({ manager: userId }).populate('manager', 'name').populate('members', 'name');
+		const boards = await Board.find({ manager: userId })
+		.populate('manager', 'name email')
 
 		//? Retrieve all tasks for the user
 		const tasks = await Task.find({
-			parentColumnId: { $in: boards.map(board => board.columns.map(column => column._id)).flat() },
-		}).populate('assignedTo', 'name email');
+			parentColumnId: { $in: boards.map(board => board.columns.map(column => column._id)).flat() },})
+			.populate('assignedTo', 'name email')
+			.populate('manager', 'name email');
 
 		//? Populate tasks for each column in each board
 		boards.forEach(board => {

@@ -6,7 +6,7 @@ const authorizeTaskUpdate = require('../middlewares/authorizeTaskUpdate');
 const router = Router();
 
 router.post('/', [validateJWT, checkRepeatedTaskTitle], createTask);
-router.put('/:taskId', [validateJWT, checkRepeatedTaskTitle, authorizeTaskUpdate], updateTask);
+router.put('/:taskId', [validateJWT], updateTask);
 router.put('/:taskId/assignUser', validateJWT, assignUserToTask);
 router.delete('/:taskId', validateJWT, deleteTask);
 module.exports = router;

@@ -39,12 +39,20 @@ BoardSchema.methods.toJSON = function () {
 		const { _id, ...rest } = column;
 		rest.columnId = _id;
 		rest.tasks = rest.tasks.map(task => {
-			const { __v, _id, ...rest } = task;
+			const { __v, _id, manager, assignedTo, ...rest } = task;
+			const { _id: idManager, ...restOfManager } = manager;
+			let assignedUser = null;
+			if (assignedTo) {
+				const { _id: idAssignedUser, ...restOfAssignedUser } = assignedTo;
+				assignedUser = restOfAssignedUser;
+			}
 			rest.subtasks = rest.subtasks.map(subtask => {
 				const { _id, ...rest } = subtask;
 				rest.subtaskId = _id;
 				return rest;
 			});
+			rest.manager = restOfManager;
+			rest.assignedTo = assignedUser;
 			rest.taskId = _id;
 			return rest;
 		});
