@@ -8,11 +8,13 @@ const getUserBoards = async (req = request, res = response) => {
 	const userId = req.user._id;
 	try {
 		const boards = await Board.find({ manager: userId })
-		.populate('manager', 'name email')
+			.populate('manager', 'name email')
+			.populate('members', 'name email');
 
 		//? Retrieve all tasks for the user
 		const tasks = await Task.find({
-			parentColumnId: { $in: boards.map(board => board.columns.map(column => column._id)).flat() },})
+			parentColumnId: { $in: boards.map(board => board.columns.map(column => column._id)).flat() },
+		})
 			.populate('assignedTo', 'name email')
 			.populate('manager', 'name email');
 
@@ -95,15 +97,14 @@ const updateBoard = async (req = request, res = response) => {
 const addMemberToBoard = async (req = request, res = response) => {
 	const userId = req.user._id;
 	const { boardId } = req.params;
-	const { email } = req.body; //Email of the user to add
+	const { name, email } = req.body; //Email of the user to add
 	try {
-		const { _id: newMemberId, name } = await User.findOne({ email });
+		const { _id: newMemberId } = await User.findOne({ email, name });
 		const filter = { _id: boardId, manager: userId };
 		const update = { $push: { members: newMemberId } };
 		const board = await Board.findOneAndUpdate(filter, update, { new: true });
 		res.json({
 			ok: true,
-			// board,
 			board,
 			msg: `User : ${name} added correctly.`,
 		});

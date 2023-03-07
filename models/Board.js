@@ -33,30 +33,34 @@ const BoardSchema = Schema({
 BoardSchema.methods.toJSON = function () {
 	const { __v, _id, userId, ...board } = this.toObject();
 	board.boardId = _id;
-	const { _id: id, ...rest } = board.manager;
-	board.manager = rest;
+	const { _id: id, ...restOfBoardManager } = board.manager;
+	board.members = board.members.map(member => {
+		const { _id, ...restOfMember } = member;
+		return restOfMember;
+	});
+	board.manager = restOfBoardManager;
 	board.columns = board.columns.map(column => {
-		const { _id, ...rest } = column;
-		rest.columnId = _id;
-		rest.tasks = rest.tasks.map(task => {
-			const { __v, _id, manager, assignedTo, ...rest } = task;
+		const { _id, ...restOfColumn } = column;
+		restOfColumn.columnId = _id;
+		restOfColumn.tasks = restOfColumn.tasks.map(task => {
+			const { __v, _id, manager, assignedTo, ...restOfTask } = task;
 			const { _id: idManager, ...restOfManager } = manager;
 			let assignedUser = null;
 			if (assignedTo) {
 				const { _id: idAssignedUser, ...restOfAssignedUser } = assignedTo;
 				assignedUser = restOfAssignedUser;
 			}
-			rest.subtasks = rest.subtasks.map(subtask => {
-				const { _id, ...rest } = subtask;
-				rest.subtaskId = _id;
-				return rest;
+			restOfTask.subtasks = restOfTask.subtasks.map(subtask => {
+				const { _id, ...restOfSubtask } = subtask;
+				restOfSubtask.subtaskId = _id;
+				return restOfSubtask;
 			});
-			rest.manager = restOfManager;
-			rest.assignedTo = assignedUser;
-			rest.taskId = _id;
-			return rest;
+			restOfTask.manager = restOfManager;
+			restOfTask.assignedTo = assignedUser;
+			restOfTask.taskId = _id;
+			return restOfTask;
 		});
-		return rest;
+		return restOfColumn;
 	});
 	return board;
 };
